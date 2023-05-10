@@ -2,15 +2,15 @@ import numpy as np
 def world():
 
     #INICIJALIZACIJA
-    cilj=(2,4)
+    cilj=(1,0)
     dim=(5,5)
-    prag = 0.1
+    prag = 0.01
     gamma = 0.9
 
     V = {} #VREDNOST STANJA
     for i in range(dim[0]):
         for j in range(dim[1]):
-            V[(i, j)] = np.random.randint(0,4)
+            V[(i, j)] = -100#np.random.randint(0,4)
     V[cilj]=0
 
 
@@ -18,24 +18,29 @@ def world():
     for i in range(dim[0]):
         for j in range(dim[1]):
             for k in range(4):
-                H[((i, j), k)]= 0
+                H[((i, j), k)]= -1
 
     #NAGRADA KADA DODJEMO DO CILJA
-    H[(cilj, 0)] = 1
-    H[(cilj, 1)] = 1
+    """H[((cilj[0],cilj[1]-1), 0)] = 1
+    H[((cilj[0]-1,cilj[1]), 1)] = 1
+    H[((cilj[0],cilj[1]+1), 2)] = 1
+    H[((cilj[0]+1,cilj[1]), 3)] = 1"""
+
+    H[(cilj,0)]=1
+    #H[(cilj, 1)] = 1
     H[(cilj, 2)] = 1
     H[(cilj, 3)] = 1
 
     #KAZNENA POLJA
-    H[((0,2), 0)] = -1
-    H[((0,2), 1)] = -1
-    H[((0,2), 2)] = -1
-    H[((0,2), 3)] = -1
+    H[((0,2), 0)] = -10
+    H[((0,2), 1)] = -10
+    H[((0,2), 2)] = -10
+    #H[((0,2), 3)] = -10
 
-    H[((3, 3), 0)] = -1
-    H[((3, 3), 1)] = -1
-    H[((3, 3), 2)] = -1
-    H[((3, 3), 3)] = -1
+    H[((3, 3), 0)] = -10
+    H[((3, 3), 1)] = -10
+    H[((3, 3), 2)] = -10
+    H[((3, 3), 3)] = -10
 
     #DODAVANJE ZAMKI
     """H[((0, 3), 0)] = -100000000000000
@@ -111,9 +116,26 @@ def world():
 
 
     policy = {}
-    def create_policy(v,states,policy):
-
-        a=np.argmax(v)
+    def create_policy(V,states,policy):
+        niz=[float("-inf"),float("-inf"),float("-inf"),float("-inf")]
+        try:
+            niz[0]=V[states[0],states[1]+1]
+        except KeyError:
+            pass
+        try:
+            niz[1] = V[states[0]+1, states[1] ]
+        except KeyError:
+            pass
+        try:
+            niz[2] = V[states[0], states[1] - 1]
+        except KeyError:
+            pass
+        try:
+            niz[3] = V[states[0]-1, states[1] ]
+        except KeyError:
+            pass
+        #print(niz)
+        a=np.argmax(niz)
         if a==0:
             policy[states]="R"
         elif a==1:
@@ -147,18 +169,17 @@ def world():
             for a in Actions[states]:
                 v[a] = H[(states, a)] + gamma * V[update_state(a,states)]
             V[states]=max(v)
-            policy=create_policy(v, states,policy)
+            #policy=create_policy(V, states,policy)
             if abs(old_V[states]-V[states])<prag:
                 c+=1
-        #prikaz(V)
-        prikaz_policy(policy)
+        prikaz(V)
+        #prikaz_policy(policy)
         old_V = V
 
-
-
-
+    for states in V.copy():
+        policy = create_policy(V, states, policy)
+    prikaz_policy(policy)
 
 if __name__ == '__main__':
     world()
-
 
