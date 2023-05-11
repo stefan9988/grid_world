@@ -2,17 +2,15 @@ import numpy as np
 def world():
 
     #INICIJALIZACIJA
-    cilj=(2,3)
-    kazna=((0,2),(3,2))
-    zabranjeno=(1,1)
+    cilj=(0,4)
     dim=(5,5)
-    prag = 0.01
+    prag = 0.1
     gamma = 0.9
 
     V = {} #VREDNOST STANJA
     for i in range(dim[0]):
         for j in range(dim[1]):
-            V[(i, j)] = -10#np.random.randint(0,4)
+            V[(i, j)] = -100#np.random.randint(0,4)
     V[cilj]=0
 
 
@@ -20,8 +18,7 @@ def world():
     for i in range(dim[0]):
         for j in range(dim[1]):
             for k in range(4):
-                H[((i, j), k)]= -1
-
+                H[((i, j), k)]= 0
 
     #NAGRADA KADA DODJEMO DO CILJA
     H[((cilj[0],cilj[1]-1), 0)] = 1
@@ -29,24 +26,7 @@ def world():
     H[((cilj[0],cilj[1]+1), 2)] = 1
     H[((cilj[0]+1,cilj[1]), 3)] = 1
 
-    # KAZNA
-    """H[((kazna[0], kazna[1] - 1), 0)] = -10
-    H[((kazna[0] - 1, kazna[1]), 1)] = -10
-    H[((kazna[0], kazna[1] + 1), 2)] = -10
-    H[((kazna[0] + 1, kazna[1]), 3)] = -10
 
-    print(H)"""
-
-    #DODAVANJE ZAMKI
-    """H[((0, 3), 0)] = -100000000000000
-    H[((0, 3), 1)] = -100000000000000
-    H[((0, 3), 2)] = -100000000000000
-    H[((0, 3), 3)] = -100000000000000
-
-    H[((3, 4), 0)] = -100000000000000
-    H[((3, 4), 1)] = -100000000000000
-    H[((3, 4), 2)] = -100000000000000
-    H[((3, 4), 3)] = -100000000000000"""
 
     old_V = {}
     for i in range(dim[0]):
@@ -152,53 +132,25 @@ def world():
         print("=====================")
 
 
-    c = 0  # BROJAC
-    flag = True
+
+    c = 0 #BROJAC
+    flag=True
     while flag:
-        if c == dim[0] * dim[1] - 1:
-            flag = False  # AKO SU SVE VREDNOSTI STANJA MANJE OD PRAGA ZAUSTAVLJA SE RACUNANJE
+        if c==dim[0]*dim[1]-1:
+            flag=False #AKO SU SVE VREDNOSTI STANJA MANJE OD PRAGA ZAUSTAVLJA SE RACUNANJE
         c = 0
         for states in V.copy():
             if states != cilj:
                 v = [float("-inf"), float("-inf"), float("-inf"), float("-inf")]
                 for a in Actions[states]:
-                    next_state = update_state(a, states)
-                    if states in kazna:
-                       r = -10
-                    else:
-                       r = -1
-                    v[a] = r + gamma * V[next_state]
-                    #v[a] = H[(states, a)] + gamma * V[update_state(a, states)]
-                V[states] = max(v)
+                    v[a] = H[(states, a)] + gamma * V[update_state(a,states)]
+                V[states]=max(v)
 
-                if abs(old_V[states] - V[states]) < prag:
-                    c += 1
+                if abs(old_V[states]-V[states])<prag:
+                    c+=1
         prikaz(V)
-        old_V = V.copy()
-
-    for states in V.copy():
-        policy = create_policy(V, states, policy)
-    prikaz_policy(policy)
-
-
-    """c = 0 #BROJAC
-    flag=True
-    while flag:
-        if c==dim[0]*dim[1]:
-            flag=False #AKO SU SVE VREDNOSTI STANJA MANJE OD PRAGA ZAUSTAVLJA SE RACUNANJE
-        c = 0
-        for states in V.copy():
-            v = [float("-inf"), float("-inf"), float("-inf"), float("-inf")]
-            for a in Actions[states]:
-                v[a] = H[(states, a)] + gamma * V[update_state(a,states)]
-            V[states]=max(v)
-            #policy=create_policy(V, states,policy)
-            if abs(old_V[states]-V[states])<prag:
-                c+=1
-        prikaz(V)
-        #prikaz_policy(policy)
         old_V = V
-    """
+
 
 
 if __name__ == '__main__':
